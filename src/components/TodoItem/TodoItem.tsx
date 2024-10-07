@@ -6,8 +6,9 @@ type Props = {
   todo: Todo;
   onDelete: (val: number) => void;
   onStatusChange: (val: Todo) => Promise<void>;
-  isLoading: number;
-  onEdit: (val: Todo) => void;
+  isLoading: number[];
+  onEdit: (val: Todo) => Promise<void>;
+  isUpdateError: boolean;
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -16,6 +17,7 @@ export const TodoItem: React.FC<Props> = ({
   isLoading,
   onStatusChange,
   onEdit,
+  isUpdateError,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [titleEdit, setTitleEdit] = useState(todo.title);
@@ -24,7 +26,7 @@ export const TodoItem: React.FC<Props> = ({
 
   useEffect(() => {
     field.current?.focus();
-  }, [isEditing]);
+  }, [isEditing, isUpdateError]);
 
   const handleEditClose = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +45,10 @@ export const TodoItem: React.FC<Props> = ({
     }
 
     onEdit({ ...todo, title: titleEdit.trim() });
-    setIsEditing(false);
+
+    if (!isUpdateError) {
+      setIsEditing(false);
+    }
   };
 
   const handleKeyChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -106,7 +111,7 @@ export const TodoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={classNames('modal overlay', {
-          'is-active': isLoading === todo.id,
+          'is-active': isLoading.includes(todo.id),
         })}
       >
         {/* eslint-disable-next-line max-len */}

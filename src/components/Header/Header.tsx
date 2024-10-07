@@ -1,3 +1,5 @@
+import classNames from 'classnames';
+
 type Props = {
   textField: string;
   onTextField: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -5,6 +7,8 @@ type Props = {
   isSubmiting: boolean;
   field: React.RefObject<HTMLInputElement>;
   onToggleAll: () => void;
+  isToggleActive: boolean;
+  isToggleVisible: boolean;
 };
 
 export const Header: React.FC<Props> = ({
@@ -14,15 +18,21 @@ export const Header: React.FC<Props> = ({
   isSubmiting,
   field,
   onToggleAll,
+  isToggleActive,
+  isToggleVisible,
 }) => {
   return (
     <header className="todoapp__header">
-      <button
-        type="button"
-        className="todoapp__toggle-all active"
-        data-cy="ToggleAllButton"
-        onClick={onToggleAll}
-      />
+      {isToggleVisible && (
+        <button
+          type="button"
+          className={classNames('todoapp__toggle-all', {
+            active: isToggleActive,
+          })}
+          data-cy="ToggleAllButton"
+          onClick={onToggleAll}
+        />
+      )}
 
       <form onSubmit={onSubmit}>
         <input

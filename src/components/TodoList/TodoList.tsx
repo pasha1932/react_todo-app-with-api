@@ -4,11 +4,12 @@ import { TodoItem } from '../TodoItem/TodoItem';
 type Props = {
   visibleTodos: Todo[];
   onDelete: (val: number) => void;
-  isLoading: number;
+  isLoading: number[];
   tempTodo: Todo | null;
   textField: string;
   onStatusChange: (val: Todo) => Promise<void>;
-  onEdit: (val: Todo) => void;
+  onEdit: (val: Todo) => Promise<void>;
+  isUpdateError: boolean;
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -19,6 +20,7 @@ export const TodoList: React.FC<Props> = ({
   textField,
   onStatusChange,
   onEdit,
+  isUpdateError,
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -32,6 +34,7 @@ export const TodoList: React.FC<Props> = ({
               isLoading={isLoading}
               onStatusChange={onStatusChange}
               onEdit={onEdit}
+              isUpdateError={isUpdateError}
             />
           ))}
         </div>

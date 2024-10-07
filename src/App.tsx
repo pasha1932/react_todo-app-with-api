@@ -15,19 +15,19 @@ import { Footer } from './components/Footer/Footer';
 import { ErrorNotification } from './components/ErrorNotification/ErrorNotification';
 
 export enum Status {
-  all = 'all',
-  active = 'active',
-  completed = 'completed',
+  All = 'All',
+  Active = 'Active',
+  Completed = 'Completed',
 }
 
 function getVisibleTodos(todos: Todo[], status: Status) {
   const copyTodos = [...todos];
 
-  if (status === Status.active) {
+  if (status === Status.Active) {
     return copyTodos.filter(todo => !todo.completed);
   }
 
-  if (status === Status.completed) {
+  if (status === Status.Completed) {
     return copyTodos.filter(todo => todo.completed);
   }
 
@@ -37,11 +37,12 @@ function getVisibleTodos(todos: Todo[], status: Status) {
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
-  const [statusTodo, setStatusTodo] = useState<Status>(Status.all);
+  const [statusTodo, setStatusTodo] = useState<Status>(Status.All);
   const [textField, setTextField] = useState('');
   const [isSubmiting, setIsSubmiting] = useState(false);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [isLoading, setIsLoading] = useState(0);
+  const [isLoading, setIsLoading] = useState<number[]>([]);
+  const [isUpdateError, setIsUpdateError] = useState(false);
 
   const field = useRef<HTMLInputElement>(null);
   const todosLength = todos.length;
@@ -84,7 +85,7 @@ export const App: React.FC = () => {
 
     const newTodo: Omit<Todo, 'id'> = {
       userId: USER_ID,
-      title: textField,
+      title: textField.trim(),
       completed: false,
     };
 
@@ -92,7 +93,7 @@ export const App: React.FC = () => {
     setTempTodo({
       id: 0,
       userId: USER_ID,
-      title: textField,
+      title: textField.trim(),
       completed: false,
     });
 
@@ -101,9 +102,8 @@ export const App: React.FC = () => {
         setTodos(currentTodos => [...currentTodos, todo]);
         setTextField('');
       })
-      .catch(error => {
+      .catch(() => {
         setErrorMessage('Unable to add a todo');
-        throw error;
       })
       .finally(() => {
         setIsSubmiting(false);
@@ -112,20 +112,24 @@ export const App: React.FC = () => {
   };
 
   const handleDelete = (todoId: number) => {
-    setIsLoading(todoId);
-
+    setIsLoading(currentLoads => [...currentLoads, todoId]);
+    setIsSubmiting(true);
     deleteTodo(todoId)
       .then(() =>
         setTodos(currentTodos =>
           currentTodos.filter(todo => todo.id !== todoId),
         ),
       )
-      .catch(error => {
+      .catch(() => {
         setTodos(todos);
         setErrorMessage('Unable to delete a todo');
-        throw error;
       })
-      .finally(() => setIsLoading(0));
+      .finally(() => {
+        setIsSubmiting(false);
+        setIsLoading(currentLoads =>
+          currentLoads.filter(loadId => loadId !== todoId),
+        );
+      });
   };
 
   const handleDeleteCompleted = () => {
@@ -133,7 +137,7 @@ export const App: React.FC = () => {
   };
 
   const handleStatusChange = (updatedTodo: Todo) => {
-    setIsLoading(updatedTodo.id);
+    setIsLoading(currentLoads => [...currentLoads, updatedTodo.id]);
 
     return updateTodo({ ...updatedTodo, completed: !updatedTodo.completed })
       .then(() => {
@@ -145,12 +149,13 @@ export const App: React.FC = () => {
           );
         });
       })
-      .catch(error => {
+      .catch(() => {
         setErrorMessage('Unable to update a todo');
-        throw error;
       })
       .finally(() => {
-        setIsLoading(0);
+        setIsLoading(currentLoads =>
+          currentLoads.filter(loadId => loadId !== updatedTodo.id),
+        );
       });
   };
 
@@ -164,7 +169,7 @@ export const App: React.FC = () => {
   };
 
   const handleEditTodo = (updatedTodo: Todo) => {
-    setIsLoading(updatedTodo.id);
+    setIsLoading(currentLoads => [...currentLoads, updatedTodo.id]);
 
     return updateTodo(updatedTodo)
       .then(() => {
@@ -173,13 +178,16 @@ export const App: React.FC = () => {
             todo.id === updatedTodo.id ? updatedTodo : todo,
           );
         });
+        setIsUpdateError(false);
       })
-      .catch(error => {
+      .catch(() => {
+        setIsUpdateError(true);
         setErrorMessage('Unable to update a todo');
-        throw error;
       })
       .finally(() => {
-        setIsLoading(0);
+        setIsLoading(currentLoads =>
+          currentLoads.filter(loadId => loadId !== updatedTodo.id),
+        );
       });
   };
 
@@ -195,6 +203,8 @@ export const App: React.FC = () => {
           isSubmiting={isSubmiting}
           field={field}
           onToggleAll={handleToggleAll}
+          isToggleActive={completedTodosId.length !== 0}
+          isToggleVisible={!!todosLength}
         />
 
         <TodoList
@@ -205,6 +215,7 @@ export const App: React.FC = () => {
           textField={textField}
           onStatusChange={handleStatusChange}
           onEdit={handleEditTodo}
+          isUpdateError={isUpdateError}
         />
 
         {!!todosLength && (

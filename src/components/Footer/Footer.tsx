@@ -16,6 +16,8 @@ export const Footer: React.FC<Props> = ({
   onDeleteCompleted,
   statusTodo,
 }) => {
+  const statuses = Object.values(Status);
+
   return (
     <footer className="todoapp__footer" data-cy="Footer">
       <span className="todo-count" data-cy="TodosCounter">
@@ -23,38 +25,19 @@ export const Footer: React.FC<Props> = ({
       </span>
 
       <nav className="filter" data-cy="Filter">
-        <a
-          href="#/"
-          className={classNames('filter__link', {
-            selected: statusTodo === Status.all,
-          })}
-          data-cy="FilterLinkAll"
-          onClick={() => onStatus(Status.all)}
-        >
-          All
-        </a>
-
-        <a
-          href="#/active"
-          className={classNames('filter__link', {
-            selected: statusTodo === Status.active,
-          })}
-          data-cy="FilterLinkActive"
-          onClick={() => onStatus(Status.active)}
-        >
-          Active
-        </a>
-
-        <a
-          href="#/completed"
-          className={classNames('filter__link', {
-            selected: statusTodo === Status.completed,
-          })}
-          data-cy="FilterLinkCompleted"
-          onClick={() => onStatus(Status.completed)}
-        >
-          Completed
-        </a>
+        {statuses.map(status => (
+          <a
+            key={status}
+            href={'#/' + Status[status]}
+            className={classNames('filter__link', {
+              selected: statusTodo === status,
+            })}
+            data-cy={'FilterLink' + status}
+            onClick={() => onStatus(status)}
+          >
+            {status}
+          </a>
+        ))}
       </nav>
 
       <button
